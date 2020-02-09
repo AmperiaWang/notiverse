@@ -1,2 +1,3 @@
 # notiverse
-一个轻量的笔记管理应用，基于IndexedDB，使用Dexie.js，Tinymce等开源组件
+一个轻量的笔记管理应用，基于IndexedDB，使用Dexie.js，TinyMCE等开源组件
+本来就是为自己写的，代码我会部署到我的Github Pages上面。大家可以去预览。由于IDB是在浏览器上面运行的，因此数据之间不互通，在没有开发完成之前别存自己太贵重的笔记，若存储在这上面的笔记丢失了恕不负责。
