@@ -1,0 +1,458 @@
+nav{
+	position: fixed;
+	z-index: 2;
+	width: 100%;
+	top: 0;
+	height: 3rem;
+	border-bottom: 2px solid #0094ea;
+	background-color: rgba(255, 255, 255, 0.95);
+	transition: border-color .3s;
+	-ms-transition: border-color .3s;
+	-o-transition: border-color .3s;
+	-webkit-transition: border-color .3s;
+}
+
+nav > *{
+	display: inline-block;
+	line-height: 2rem;
+	padding: 0.5rem 0;
+}
+
+input{
+	width: 100%;
+	outline: none;
+	border: none;
+}
+
+table {
+	border-collapse: collapse;
+	text-align: center;
+	line-height: 2rem;
+	width: 100%;
+}
+
+table, thead, tbody{
+	border: 0;
+}
+
+table tr:first-child {
+	border: 0;
+	border-bottom: 2px solid #0094ea;
+}
+
+table td {
+	border: 0;
+	border-right: 1px solid #cccccc;
+	padding: 10px 0;
+}
+
+table tr:first-child td, table tr td:last-child {
+	border-right: 0;
+}
+
+img{
+	max-width: 60%;
+}
+
+.red {
+	background-color: #ea6476 !important;
+}
+
+.red-border {
+	border-color: #ea001f !important;
+}
+
+.red-text {
+	color: #ea001f !important;
+}
+
+.red-face {
+	border-color: #ea001f !important;
+	color: #ea001f !important;
+}
+
+.orange {
+	background-color: #ea9564 !important;
+}
+
+.orange-border {
+	border-color: #ea5600 !important;
+}
+
+.orange-text {
+	color: #ea5600 !important;
+}
+
+.orange-face {
+	border-color: #ea5600 !important;
+	color: #ea5600 !important;
+}
+
+.yellow {
+	background-color: #ead864 !important;
+}
+
+.yellow-border {
+	border-color: #eacb00 !important;
+}
+
+.yellow-text {
+	color: #eacb00 !important;
+}
+
+.yellow-face {
+	border-color: #eacb00 !important;
+	color: #eacb00 !important;
+}
+
+.lime {
+	background-color: #b9ea64 !important;
+}
+
+.lime-border {
+	border-color: #94ea00 !important;
+}
+
+.lime-text {
+	color: #94ea00 !important;
+}
+
+.lime-face {
+	border-color: #94ea00 !important;
+	color: #94ea00 !important;
+}
+
+.light-green {
+	background-color: #76ea64 !important;
+}
+
+.light-green-border {
+	border-color: #1fea00 !important;
+}
+
+.light-green-text {
+	color: #1fea00 !important;
+}
+
+.light-green-face {
+	border-color: #1fea00 !important;
+	color: #1fea00 !important;
+}
+
+.green {
+	background-color: #64ea95 !important;
+}
+
+.green-border {
+	border-color: #00ea56 !important;
+}
+
+.green-text {
+	color: #00ea56 !important;
+}
+
+.green-face {
+	border-color: #00ea56 !important;
+	color: #00ea56 !important;
+}
+
+.cyan {
+	background-color: #64ead8 !important;
+}
+
+.cyan-border {
+	border-color: #00eacb !important;
+}
+
+.cyan-text {
+	color: #00eacb !important;
+}
+
+.cyan-face {
+	border-color: #00eacb !important;
+	color: #00eacb !important;
+}
+
+.light-blue {
+	background-color: #64b9ea !important;
+}
+
+.light-blue-border {
+	border-color: #0094ea !important;
+}
+
+.light-blue-text {
+	color: #0094ea !important;
+}
+
+.light-blue-face {
+	border-color: #0094ea !important;
+	color: #0094ea !important;
+}
+
+.blue {
+	background-color: #6476ea !important;
+}
+
+.blue-border {
+	border-color: #001fea !important;
+}
+
+.blue-text {
+	color: #001fea !important;
+}
+
+.blue-face {
+	border-color: #001fea !important;
+	color: #001fea !important;
+}
+
+.purple {
+	background-color: #9564ea !important;
+}
+
+.purple-border {
+	border-color: #5600ea !important;
+}
+
+.purple-text {
+	color: #5600ea !important;
+}
+
+.purple-face {
+	border-color: #5600ea !important;
+	color: #5600ea !important;
+}
+
+.magenta {
+	background-color: #d864ea !important;
+}
+
+.magenta-border {
+	border-color: #cb00ea !important;
+}
+
+.magenta-text {
+	color: #cb00ea !important;
+}
+
+.magenta-face {
+	border-color: #cb00ea !important;
+	color: #cb00ea !important;
+}
+
+.pink {
+	background-color: #ea64b9 !important;
+}
+
+.pink-border {
+	border-color: #ea0094 !important;
+}
+
+.pink-text {
+	color: #ea0094 !important;
+}
+
+.pink-face {
+	border-color: #ea0094 !important;
+	color: #ea0094 !important;
+}
+
+.round{
+	border-radius: 50%;
+}
+
+.notiverse-module{
+	position: fixed;
+	overflow-y: auto;
+}
+
+#notiverse-search-bar{
+	position: fixed;
+	top: 3rem;
+	left: 0;
+	height: 3rem;
+	background-color: #ffffff;
+	border-right: 1px solid #cccccc;
+	border-bottom: 1px solid #cccccc;
+}
+
+#notiverse-search-button{
+	float:right;
+	font-size: 1.4rem;
+	line-height: 1.4rem;
+	padding: 0.8rem;
+	cursor: pointer;
+	transition: color .3s;
+	-moz-transition: color .3s;
+	-o-transition: color .3s;
+	-webkit-transition: color .3s;
+}
+
+#notiverse-search-button:hover{
+	color: #0094ea;
+}
+
+#notiverse-search-input{
+	width: calc(100% - 5rem);
+	padding: 0.9rem 0.9rem;
+	font-size: 1rem;
+	line-height: 1rem;
+}
+
+#notiverse-toolbar{
+	display: block;
+	position: fixed;
+	bottom: 0;
+	right: 0;
+	height: 3rem;
+	background-color: #ffffff;
+	border-top: 1px solid #cccccc;
+}
+
+#notiverse-menu{
+	top: 6rem;
+	left: 0;
+	bottom: 0;
+	border-right: 1px solid #cccccc;
+}
+
+#notiverse-body-part{
+	top: 3rem;
+	right: 0;
+	bottom: 3rem;
+}
+
+#notiverse-body-part > *{
+	display: none;
+}
+
+#notiverse-body-part > .active{
+	display: inherit !important;
+}
+
+.left{
+	width: 25%;
+}
+
+.right{
+	width: 75%;
+}
+
+@media only screen and (max-width: 959px) {
+	.left,.right{
+		width: 100%;
+	}
+}
+
+.notiverse-logo{
+	text-align: center;
+}
+
+.notiverse-logo img{
+	max-height: 2rem;
+	vertical-align: middle;
+}
+
+.notiverse-menu-item{
+	padding: 1rem;
+	border-bottom: 1px solid #cccccc;
+}
+
+.notiverse-menu-item .main{
+	margin-right: 4rem;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	word-break: break-all;
+	cursor: pointer;
+}
+
+.ellipsis{
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	word-break: break-all;
+}
+
+.notiverse-menu-item .menu-item-action{
+	display: inline-block;
+	font-size: 1.2rem;
+	line-height: 1rem;
+	vertical-align: middle;
+	margin: 0 0.5rem;
+}
+
+#notiverse-history-row{
+	height: 7rem;
+	text-align: center;
+}
+
+.notiverse-history-item{
+	display: inline-block;
+	width: 5rem;
+	height: 7rem;
+	margin: 0 1rem;
+	cursor: pointer;
+}
+
+.notiverse-history-item i{
+	width: 4rem;
+	height: 4rem;
+	font-size: 4rem;
+	font-weight: 200;
+	line-height: 4rem;
+}
+
+.notiverse-history-item .title{
+	padding: 1rem 0;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	word-break: break-all;
+}
+
+.notiverse-toolbar-item{
+	display: inline-block;
+	color: #000000;
+	height: 3rem;
+	line-height: 3rem;
+	font-size: 2rem;
+	padding: 0 1rem;
+	cursor: pointer;
+	transition: color .3s;
+	-moz-transition: color .3s;
+	-o-transition: color .3s;
+	-webkit-transition: color .3s;
+}
+
+.notiverse-toolbar-item:hover{
+	color: #0094ea;
+}
+
+#notiverse-reader,#notiverse-editor{
+	margin: 1rem;
+}
+
+#reader-title,#editor-title{
+	font-size: 1.75rem;
+	font-weight: 300;
+	color: #0094ea;
+	margin: 0.5rem;
+	padding: 0.5rem;
+	border-bottom: 1px solid #0094ea;
+}
+
+#editor-title input{
+	font-size: 1.75rem;
+	font-weight: 300;
+	color: #0094ea;
+}
+
+.toolbar{
+	float: right;
+}
+
+.toolbar > *{
+	cursor: pointer;
+}

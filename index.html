@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="icon" href="./resources/icon.png"/>
+	<link rel="stylesheet" href="./resources/font-awesome/css/font-awesome.min.css">
+	<style type="text/css">
+		html,body{
+			margin: 0;
+			position: relative;
+		}
+	</style>
+	<link rel="stylesheet" href="./resources/main.css">
+	<style id="theme-style" type="text/css"></style>
+	<title>NotiVerse</title>
+</head>
+<body>
+	<nav class="themed-face">
+		<div class="notiverse-logo left" style="position: absolute;top: 0;left: 0;">
+			<img src="./resources/icon-full.png"></div>
+		</div>
+		<div id="notiverse-user-panel" class="notiverse-toolbar-item themed-face-hover" style="float: right;" title="用户"><i class="fa fa-user-circle-o"></i></div>
+		<div class="right ellipsis" style="position: absolute;top: 0;right:5.5rem;width: calc(75% - 6rem);color: #cccccc;">
+			<div class="notiverse-breadcrumb"></div>
+		</div>
+	</nav>
+	<div id="notiverse-page-2">
+		<div id="notiverse-body-part" class="notiverse-module right">
+			<div id="notiverse-welcome">
+				<div style="margin: 4rem auto;font-size: 4rem;font-weight: 300;text-align: center;color: #cccccc;">欢迎使用NotiVerse！</div>
+				<div style="margin: 3rem;text-align: center;color: #cccccc;">NotiVerse是基于IndexedDB的笔记管理应用。在这个页面中，您可以上传、整理、下载您的笔记。</div>
+				<div style="margin: 2rem;text-align: center;">从上次的地方开始：</div>
+				<div id="notiverse-history-row"></div>
+			</div>
+			<div id="notiverse-reader">
+				<div id="reader-title" class="themed-face"></div>
+				<div id="reader-main"></div>
+			</div>
+			<div id="notiverse-editor">
+				<div id="editor-title" class="themed-face">
+					<input type="text" class="themed-face" placeholder="在此输入标题">
+				</div>
+				<textarea id="document"></textarea>
+				<input id="editor-uploader" type="file" style="display: none;">
+			</div>
+		</div>
+		<div id="notiverse-toolbar" class="right"></div>
+	</div>
+	<div id="notiverse-page-1">
+		<div id="notiverse-search-bar" class="left">
+			<div id="notiverse-search-button" class="themed-face-hover" title="点击搜索"><i class="fa fa-search"></i></div>
+			<input id="notiverse-search-input" placeholder="搜索您的笔记"></div>
+		</div>
+		<div id="notiverse-menu" class="notiverse-module left"></div>
+	</div>
+	<script src="./resources/jquery.min.js"></script>
+	<script src="./resources/Dexie.js/dist/dexie.min.js"></script>
+	<script src="./resources/tinymce/tinymce.min.js"></script>
+	<script src="./resources/mammoth.js/mammoth.browser.min.js"></script>
+	<script src="./resources/FileSaver.js/dist/filesaver.min.js"></script>
+	<script src="./resources/main.js"></script>
+	<script type="text/javascript">
+		window._n = new NotiVerse();
+	</script>
+</body>
+</html>
