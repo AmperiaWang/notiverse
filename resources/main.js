@@ -375,6 +375,7 @@ var NotiVerse = function(){
 					content: info['content']
 				}).then(function() {
 					_this._alert('存储成功！');
+					_this._removeTab(_this._hasTab(0));
 					_this._showMenu(_this._currentPath);
 					_this._openReader(lastInsertID);
 				}).catch(function (e) {
