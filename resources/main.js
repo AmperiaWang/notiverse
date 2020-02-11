@@ -699,6 +699,7 @@ var NotiVerse = function(){
 		}else{
 			_this._displayHistory();
 		}
+		_this._setToolBar();
 	};
 	this._displayHistory = function(arr){
 		arr = arr || [];
@@ -905,8 +906,8 @@ var NotiVerse = function(){
 	};
 	this._initTinymce = function(){
 		if(!window.tinymce){
-			_this._alert('Tinymce未成功加载，请刷新页面重试。');
-			throw "Tinymce is failed to include.";
+			_this._alert('TinyMCE未成功加载，请刷新页面重试。');
+			throw "TinyMCE is failed to include.";
 		}
 		tinymce.init({
 			selector: '#document',
@@ -939,7 +940,7 @@ var NotiVerse = function(){
 			init_instance_callback: function(editor){
 				_this._editor = editor;
 				_this._initUploader();
-				console.log("Tinymce is succefully initialized with ID:" + editor.id);
+				console.log("TinyMCE is succefully initialized with ID:" + editor.id);
 			}
 		});
 	};
