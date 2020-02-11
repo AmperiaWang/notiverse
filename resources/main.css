@@ -339,10 +339,17 @@ img{
 	width: 75%;
 }
 
-@media only screen and (max-width: 959px) {
-	.left,.right{
-		width: 100%;
-	}
+input[type="button"], button, .button {
+    display: inline-block;
+    line-height: 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #0094ea;
+    border-radius: 0.25rem;
+    padding: 1rem;
+    margin: 0 0.5rem;
+    font-size: 1rem;
+    color: #0094ea;
+    cursor: pointer;
 }
 
 .notiverse-logo{
@@ -352,6 +359,47 @@ img{
 .notiverse-logo img{
 	max-height: 2rem;
 	vertical-align: middle;
+}
+
+#notiverse-tabs{
+	position: absolute;
+	top: 0.5rem;
+	right:5.5rem;
+	width: calc(75% - 6rem);
+	height: 2.5rem;
+	padding: 0;
+	display: flex;
+	flex-wrap: nowrap;
+	justify-content: flex-start;
+	align-items: flex-end;
+}
+
+.notiverse-tab-item{
+	flex-grow: 1;
+	width: 0;
+	max-width: 12rem;
+	height: 1rem;
+	line-height: 1rem;
+	padding: 0.7rem;
+	border: 1px solid #cccccc;
+	border-bottom: 0px;
+	border-radius: 0.25rem 0.25rem 0 0;
+	white-space: nowrap;
+}
+
+
+.notiverse-tab-item .main, .notiverse-tab-item .close{
+	display: inline-block;
+}
+
+.notiverse-tab-item .main{
+	width: calc(100% - 1rem);
+	color: #000000;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	word-break: break-all;
+	cursor: pointer;
 }
 
 .notiverse-menu-item{
@@ -455,4 +503,105 @@ img{
 
 .toolbar > *{
 	cursor: pointer;
+}
+
+.notiverse-window-layer{
+	display: none;
+	position: fixed;
+	z-index: 9998;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background-color: rgba(0,0,0,0.5);
+}
+
+.notiverse-window{
+	display: none;
+	position: fixed;
+	z-index: 9999;
+	left: 30%;
+	right: 30%;
+	top: 30%;
+	bottom: 30%;
+	overflow: hidden;
+	background-color: #ffffff;
+	border: 1px solid #cccccc;
+	border-radius: 0.25rem;
+}
+
+.notiverse-window-head{
+	display: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3rem;
+	border-bottom: 1px solid #cccccc;
+}
+
+.notiverse-window-head.active{
+	display: block;
+}
+
+.notiverse-window-title, .notiverse-window-close{
+	position: absolute;
+	top: 0;
+	right: 0;
+	height: 1rem;
+	padding: 1rem;
+	line-height: 1rem;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	word-break: break-all;
+}
+
+.notiverse-window-title{
+	left: 0;
+}
+
+.notiverse-window-close, .notiverse-tab-item .close{
+	width: 1rem;
+	color: #ea001f;
+	cursor: pointer;
+}
+
+.notiverse-window-close ~ .notiverse-window-title{
+	right: 3rem;
+}
+
+.notiverse-window-body{
+	position: absolute;
+	top: 1rem;
+	bottom: 1rem;
+	left: 1rem;
+	right: 1rem;
+	word-break: break-all;
+	overflow-y: auto;
+}
+
+.notiverse-window-body input{
+	width: calc(100% - 2rem);
+	padding: 0.9rem;
+	margin: 1rem 0;
+	font-size: 1rem;
+	line-height: 1rem;
+	border: 1px solid #cccccc;
+	border-radius: 0.25rem;
+}
+
+.notiverse-window-head.active ~ .notiverse-window-body{
+	top: 4rem;
+}
+
+@media only screen and (max-width: 959px) {
+	.left,.right{
+		width: 100%;
+	}
+
+	.notiverse-window{
+		left: 10%;
+		right: 10%;
+	}
 }

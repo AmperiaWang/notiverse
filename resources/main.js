@@ -13,6 +13,8 @@ var NotiVerse = function(){
 	})();
 	this._currentUserName = null;
 	this._currentPath = 0;
+	this._tabs = [];
+	this._currentTab = -1;
 	this._allTags = ['light-blue','blue','purple','magenta','pink','red','orange','yellow','lime','light-green','green','cyan'];
 	this._config = {
 		prefix: 'notiverse_',
@@ -63,7 +65,7 @@ var NotiVerse = function(){
 			if(newName && newName.match(/^[a-zA-Z0-9\u4e00-\u9fa5]+$/)){
 				isValidName = true;
 			}else{
-				alert('此用户名不合法，请重新输入。');
+				_this._alert('此用户名不合法，请重新输入。');
 			}
 		}
 		var userNames = _this._getLocalStorageArr("usernames");
@@ -81,25 +83,25 @@ var NotiVerse = function(){
 			}
 		}
 		if(!isIn){
-			alert('该用户不存在。');
+			_this._alert('该用户不存在。');
 			return;
 		}
 		userName = _this._encodeUserName(userName);
 		var req = indexedDB.deleteDatabase(_this._config.prefix + "database_" + userName);
 		req.onsuccess = function () {
 			console.log("Deleted database successfully");
-			alert('删除成功。');
+			_this._alert('删除成功。');
 			localStorage.removeItem(_this._config.prefix + _this._encodeUserName(_this._currentUserName) + "_history");
 			localStorage.setItem(_this._config.prefix + "usernames", JSON.stringify(newUserNames));
 			_this._currentUserName = null;
 			location.reload(true);
 		};
 		req.onerror = function () {
-			alert('删除失败。');
+			_this._alert('删除失败。');
 			console.log("Couldn't delete database");
 		};
 		req.onblocked = function () {
-			alert('删除操作被拒绝。');
+			_this._alert('删除操作被拒绝。');
 			console.log("Couldn't delete database due to the operation being blocked");
 		};
 	};
@@ -125,13 +127,7 @@ var NotiVerse = function(){
 		localStorage.setItem(_this._config.prefix + _this._encodeUserName(_this._currentUserName) + "_history", JSON.stringify(prevHistory));
 	};
 	this._getEditorValue = function(){
-		var title, content;
-		if(_this._jquery){
-			title = $('#editor-title input').val();
-		}else{
-			title = document.querySelectorAll('#editor-title input')[0].value;
-		}
-		content = _this._editor.getContent();
+		var title = document.querySelectorAll('#editor-title input')[0].value, content = _this._editor.getContent();
 		return {
 			title: title,
 			content: content
@@ -139,18 +135,121 @@ var NotiVerse = function(){
 	};
 	this._setTitle = function(title){
 		if(!title){
-			alert('请输入正确的标题。');
+			_this._alert('请输入正确的标题。');
 		}
-		if(this._jquery){
-			$('title').html(title);
-		}else{
-			document.getElementsByTagName('title')[0].innerText = title;
+		document.getElementsByTagName('title')[0].innerText = title;
+	};
+	this._refreshTabs = function(curTab, force){
+		if(_this._currentTab == curTab && !force) return;
+		_this._currentTab = curTab;
+		var container = document.getElementById('notiverse-tabs'), len = _this._tabs.length, i, text='';
+		for(i=0;i<len;i++){
+			text = text + '<div class="notiverse-tab-item" data-order="' + i + '"><div class="main">' + (_this._tabs[i]['status']=='edit'?(_this._tabs[i]['id']>0?'编辑：' + _this._tabs[i]['title']:'新建一篇笔记'):_this._tabs[i]['title']) + '</div><div class="close"><i class="fa fa-close"></i></div></div>';
+		}
+		container.innerHTML = text;
+		var tabItems = document.getElementsByClassName('notiverse-tab-item');
+		for(var p in tabItems){
+			if(typeof tabItems[p] != 'object') continue;
+			let order = parseInt(tabItems[p].getAttribute('data-order')), c = tabItems[p].getAttribute('class').replace('themed-face','').trim(), mainContainer = tabItems[p].getElementsByClassName('main')[0], closeButton = tabItems[p].getElementsByClassName('close')[0];
+			if(order == curTab){
+				c = c + ' themed-border';
+				_this._recoverTab(order);
+				_this._setTitle(tabItems[p].getElementsByClassName('main')[0].innerHTML + ' - NotiVerse');
+			}
+			tabItems[p].setAttribute('class',c);
+			if(order != curTab){
+				mainContainer.addEventListener('click',function(){
+					_this._recoverTab(order);
+				});
+			}
+			closeButton.addEventListener('click',function(){
+				_this._removeTab(order);
+			});
+		}
+		if(curTab<0){
+			_this._setTitle('欢迎来到NotiVerse');
+			_this._openWelcome();
 		}
 	};
-	this._updateBreadCrumb = function(text){
-		var container = document.getElementsByClassName('notiverse-breadcrumb');
-		for(var i in container){
-			if(typeof container[i] == 'object') container[i].innerHTML = text;
+	this._hasTab = function(id){
+		var len = _this._tabs.length, i;
+		for(i=0;i<len;i++){
+			if(_this._tabs[i]['id'] == id) return i;
+		}
+		return -1;
+	};
+	this._addTab = function(status, id, title, content){
+		var order = _this._hasTab(id);
+		if(order>-1){
+			if(status) _this._tabs[order]['status'] = status;
+			if(title) _this._tabs[order]['title'] = title;
+			if(content) _this._tabs[order]['content'] = content;
+		}else{
+			if(_this._tabs.length>=10){
+				let item = _this._tabs.pop();
+				if(item['status'] == 'edit'){
+					if(item['id']>0){
+						_this._saveContent(item['id'],{title:item['title'],content:item['content']});
+					}else{
+						_this._confirm('您是否要保存您的新笔记？',function(){
+							_this._saveContent(0,{title:item['title'],content:item['content']});
+						},function(){});
+					}
+				} 
+			}
+			_this._tabs.unshift({
+				status: status,
+				id: id || 0,
+				title: title || '',
+				content: content || ''
+			});
+			if(_this._currentTab>=0) _this._currentTab++;
+			order = 0;
+		}
+		_this._refreshTabs(order);
+	};
+	this._removeTab = function(order){
+		if(order<0 || _this._tabs.length <= order) return;
+		let data = _this._tabs[order], target;
+		if(_this._currentTab != order){
+			target = _this._currentTab;
+		}else{
+			target = Math.min(order, _this._tabs.length - 2);
+		}
+		if(data['status'] == 'edit'){
+			if(data['id']>0){
+				_this._saveContent(data['id'],{title:data['title'],content:data['content']});
+				_this._tabs.splice(order,1);
+				_this._refreshTabs(target,true);
+			}else if(data['title'].length && data['content'].length){
+				_this._confirm('您是否要保存您的新笔记？',function(){
+					_this._saveContent(0,{title:data['title'],content:data['content']});
+					_this._tabs.splice(order,1);
+					_this._refreshTabs(target,true);
+				},function(){
+					_this._tabs.splice(order,1);
+					_this._refreshTabs(target,true);
+				});
+			}else{
+				_this._tabs.splice(order,1);
+				_this._refreshTabs(target,true);
+			}
+		}else{
+			_this._tabs.splice(order,1);
+			_this._refreshTabs(target,true);
+		}
+	};
+	this._recoverTab = function(order){
+		if(order<0 || _this._tabs.length <= order) return;
+		_this._refreshTabs(order);
+		var data = _this._tabs[order];
+		switch(data['status']){
+			case 'read':
+			_this._openReader(data['id'], data['title'], data['content']);
+			break;
+			case 'edit':
+			_this._openEditor(data['id'], data['title'], data['content']);
+			break;
 		}
 	};
 	this._setToolBar = function(items){
@@ -159,38 +258,86 @@ var NotiVerse = function(){
 		for(var p in items){
 			itemHTML = itemHTML + '<div class="notiverse-toolbar-item themed-face-hover" data-action="'+p+'"><i class="fa fa-'+items[p]['icon']+'" title="'+items[p]['title']+'"></i></div>';
 		}
-		if(_this._jquery){
-			$('#notiverse-toolbar').html(itemHTML);
-			$('.notiverse-toolbar-item').each(function(){
-				var action = $(this).attr('data-action');
-				if(items[action]) $(this).click(function(){
-					items[action]['func']();
-				});
+		var toolBar = document.getElementById('notiverse-toolbar');
+		toolBar.innerHTML = itemHTML;
+		var itemsDOM = document.querySelectorAll('.notiverse-toolbar-item');
+		for(var p in itemsDOM){
+			if(typeof itemsDOM[p] != 'object') continue;
+			let action = itemsDOM[p].getAttribute('data-action');
+			if(items[action]) itemsDOM[p].addEventListener('click',function(){
+				items[action]['func']();
+			});
+		}
+	};
+	this._toggleWindow = function(isOpen){
+		if(!isOpen){
+			document.getElementsByClassName('notiverse-window-head')[0].innerHTML = '';
+			document.getElementsByClassName('notiverse-window-body')[0].innerHTML = '';
+		}
+		document.getElementsByClassName('notiverse-window')[0].style.display = isOpen?'block':'none';
+		document.getElementsByClassName('notiverse-window-layer')[0].style.display = isOpen?'block':'none';
+	};
+	this._setWindow = function(title, content, useCloseButton){
+		var headContainer = document.getElementsByClassName('notiverse-window-head')[0], contentContainer = document.getElementsByClassName('notiverse-window-body')[0], headClass = headContainer.getAttribute("class") || '';
+		if(title){
+			var addTitle = title;
+			title = '<div class="notiverse-window-title">' + title + '</div>';
+			if(useCloseButton) title = '<div class="notiverse-window-close"><i class="fa fa-close"></i></div>' + title;
+			headContainer.innerHTML = title;
+			var titleContainer = document.getElementsByClassName('notiverse-window-title')[0];
+			titleContainer.title = addTitle;
+			headContainer.setAttribute('class', headClass + ' active');
+			if(useCloseButton) document.getElementsByClassName('notiverse-window-close')[0].addEventListener('click',function(){
+				_this._toggleWindow(false);
 			});
 		}else{
-			var toolBar = document.getElementById('notiverse-toolbar');
-			toolBar.innerHTML(itemHTML);
-			var itemsDOM = document.querySelectorAll('.notiverse-toolbar-item');
-			for(var p in itemsDOM){
-				if(typeof itemsDOM[p] != 'object') continue;
-				var action = itemsDOM[p].getAttribute('data-action');
-				if(items[action]) itemsDOM[p].addEventListener('click',function(){
-					items[action]['func']();
-				});
-			}
+			headContainer.setAttribute('class', headClass.replace('active',''));
 		}
+		contentContainer.innerHTML = content;
+		_this._toggleWindow(true);
+	};
+	this._alert = function(message, title){
+		title = title || '提示';
+		_this._setWindow(title, message, true);
+	};
+	this._confirm = function(question, ifSo, ifNot, title){
+		title = title || '确认';
+		_this._setWindow(title, '<p>' + question + '</p><button id="notiverse-question-agree" class="themed-face">' + '确认' + '</button><button id="notiverse-question-disagree" class="themed-face">' + '取消' + '</button>',true);
+		var agree = document.getElementById('notiverse-question-agree'), disagree = document.getElementById('notiverse-question-disagree');
+		if(agree){
+			agree.addEventListener('click',function(){
+				_this._toggleWindow(false);
+				ifSo();
+			});
+		}
+		if(disagree){
+			disagree.addEventListener('click',function(){
+				_this._toggleWindow(false);
+				ifNot();
+			});
+		}
+	};
+	this._prompt = function(question, ifSubmit, title){
+		title = title || '输入';
+		_this._setWindow(title,'<div>' + question + '</div><input id="notiverse-prompt-input"><button id="notiverse-prompt-submit" class="themed-face">' + '确认' + '</button>',true);
+		var button = document.getElementById('notiverse-prompt-submit'), input = document.getElementById('notiverse-prompt-input');
+		if(button) button.addEventListener('click',function(){
+			var temp = input.value;
+			_this._toggleWindow(false);
+			ifSubmit(temp);
+		});
 	};
 	this._saveContent = function(id, info){
 		if(!info){
-			alert('您的信息提交有误，请再次确认后提交。');
+			_this._alert('您的信息提交有误，请再次确认后提交。');
 			return;
 		}
 		if(!info['title'] || info.title.length<=0){
-			alert('标题不能为空。');
+			_this._alert('标题不能为空。');
 			return;
 		}
 		if(!info['content'] || info.content.length<=0){
-			alert('内容不能为空。');
+			_this._alert('内容不能为空。');
 			return;
 		}
 		id = parseInt(id);
@@ -202,20 +349,16 @@ var NotiVerse = function(){
 				_this._db.contents.where('related_to').equals(id).modify({
 					content: info['content']
 				}).then(function(r){
-					alert('修改成功。');
-					if(_this._jquery){
-						$('#editor-title input').val('');
-					}else{
-						document.querySelectorAll('#editor-title input')[0].value = '';
-					}
+					_this._alert('修改成功。');
+					document.querySelectorAll('#editor-title input')[0].value = '';
 					_this._editor.setContent('');
 					_this._showMenu(_this._currentPath);
 					_this._openReader(id);
 				}).catch(function(e){
-					alert("Error: " + (e.stack || e));
+					_this._alert("Error: " + (e.stack || e));
 				});
 			}).catch(function(e){
-				alert("Error: " + (e.stack || e));
+				_this._alert("Error: " + (e.stack || e));
 			});
 		}else{
 			var data = {
@@ -231,14 +374,14 @@ var NotiVerse = function(){
 					related_to: lastInsertID,
 					content: info['content']
 				}).then(function() {
-					alert('存储成功！');
+					_this._alert('存储成功！');
 					_this._showMenu(_this._currentPath);
 					_this._openReader(lastInsertID);
 				}).catch(function (e) {
-					alert("Error: " + (e.stack || e));
+					_this._alert("Error: " + (e.stack || e));
 				});
 			}).catch(function (e) {
-				alert("Error: " + (e.stack || e));
+				_this._alert("Error: " + (e.stack || e));
 			});
 		}
 	};
@@ -275,9 +418,14 @@ var NotiVerse = function(){
 		newTags.push(nextTag);
 		picker.setAttribute('class', newTags.join(' '));
 	};
+	this._askForFolderInput = function(){
+		_this._prompt('请输入分支名：', function(value){
+			_this._saveFolder(value);
+		});
+	};
 	this._saveFolder = function(name){
 		if(!name || !name.length){
-			alert('分支名有误。');
+			_this._alert('分支名有误。');
 			return;
 		}
 		_this._db.menu.where('id').equals(_this._currentPath).toArray().then(function(r){
@@ -291,10 +439,10 @@ var NotiVerse = function(){
 				date_modified: _this._getDate()
 			}
 			_this._db.menu.add(data).then(function() {
-				alert('存储成功！');
+				_this._alert('分支添加成功。');
 				_this._showMenu(_this._currentPath);
 			}).catch(function (e) {
-				alert("Error: " + (e.stack || e));
+				_this._alert("Error: " + (e.stack || e));
 			});
 		});
 	};
@@ -328,7 +476,7 @@ var NotiVerse = function(){
 		id = parseInt(id);
 		if(confirm('您确定要删除吗？')){
 			_this._traversingDelete(id);
-			alert('删除成功。');
+			_this._alert('删除成功。');
 		}
 	};
 	this._renderMenuList = function(res){
@@ -394,108 +542,58 @@ var NotiVerse = function(){
 		});
 	};
 	this._bindMenuItem = function(){
-		if(_this._jquery){
-			$('.notiverse-menu-item').each(function(){
-				var targetType = $(this).attr('data-type');
-				var targetID = parseInt($(this).attr('data-id'));
-				switch($(this).attr('data-action')){
-					case 'open':
-					switch(targetType){
-						case 'file':
-						$(this).find('.main').click(function(){
-							_this._openReader(targetID);
-						});
-						break;
-						case 'folder':
-						$(this).find('.main').click(function(){
-							_this._showMenu(targetID);
-						});
-						break;
-					}
+		let menuItems = document.querySelectorAll(".notiverse-menu-item");
+		for(let r in menuItems){
+			if(typeof menuItems[r] != 'object') continue;
+			let targetType = menuItems[r].getAttribute('data-type'), targetID = parseInt(menuItems[r].getAttribute('data-id'));
+			switch(menuItems[r].getAttribute('data-action')){
+				case 'open':
+				switch(targetType){
+					case 'file':
+					menuItems[r].querySelectorAll(".main")[0].addEventListener('click',function(){
+						_this._openReader(targetID);
+					});
 					break;
-					case 'create':
-					switch(targetType){
-						case 'file':
-						$(this).find('.main').click(function(){
-							_this._openEditor();
-						});
-						break;
-						case 'folder':
-						$(this).find('.main').click(function(){
-							var title = prompt('输入分支名：');
-							if(title) _this._saveFolder(title);
-						});
-						break;
-					}
+					case 'folder':
+					menuItems[r].querySelectorAll(".main")[0].addEventListener('click',function(){
+						_this._showMenu(targetID);
+					});
 					break;
 				}
-				$(this).find('.menu-item-action').each(function(){
-					switch($(this).attr('data-action')){
-						case 'delete':
-						$(this).click(function(){
-							_this._deleteItem(targetID);
-						})
-						break;
-						case 'switch-color':
-						$(this).click(function(){
-							_this._switchTag(targetID, this);
-						})
-						break;
-					}
-				});
-			});
-		}else{
-			let menuItems = document.querySelectorAll(".notiverse-menu-item"), targetType, targetID;
-			for(let r in menuItems){
-				if(typeof menuItems[r] != 'object') continue;
-				targetType = menuItems[r].getAttribute('data-type');
-				targetID = parseInt(menuItems[r].getAttribute('data-id'));
-				switch(menuItems[r].getAttribute('data-action')){
-					case 'open':
-					switch(targetType){
-						case 'file':
-						menuItems[r].querySelectorAll(".main")[0].addEventListener('click',function(){
-							_this._openReader(targetID);
-						});
-						break;
-						case 'folder':
-						menuItems[r].querySelectorAll(".main")[0].addEventListener('click',function(){
-							_this._showMenu(targetID);
-						});
-						break;
-					}
+				break;
+				case 'create':
+				switch(targetType){
+					case 'file':
+					menuItems[r].querySelectorAll(".main")[0].addEventListener('click',function(){
+						if(_this._hasTab(0)>-1){
+							_this._alert('您有笔记正在新建，请在保存笔记后再继续新建。');
+							return;
+						}
+						_this._openEditor();
+					});
 					break;
-					case 'create':
-					switch(targetType){
-						case 'file':
-						menuItems[r].querySelectorAll(".main")[0].addEventListener('click',function(){
-							_this._openEditor();
-						});
-						break;
-						case 'folder':
-						menuItems[r].querySelectorAll(".main")[0].addEventListener('click',function(){
-							var title = prompt('输入分支名：');
-							if(title) _this._saveFolder(title);
-						});
-						break;
-					}
+					case 'folder':
+					menuItems[r].querySelectorAll(".main")[0].addEventListener('click',function(){
+						_this._askForFolderInput();
+					});
 					break;
 				}
-				let menuItemActions = menuItems[r].getElementsByClassName('menu-item-action');
-				for(var u in menuItemActions){
-					if(typeof menuItemActions[u] != 'object') continue;
-					switch(menuItemActions[u].getAttribute('data-action')){
-						case 'delete':
-						menuItemActions[u].addEventListener('click',function(){
-							_this._deleteItem(targetID);
-						});
-						break;
-						case 'switch-color':
-						menuItemActions[u].addEventListener('click',function(){
-							_this._switchTag(targetID, this);
-						});
-						break;
-					}
+				break;
+			}
+			let menuItemActions = menuItems[r].getElementsByClassName('menu-item-action');
+			for(var u in menuItemActions){
+				if(typeof menuItemActions[u] != 'object') continue;
+				switch(menuItemActions[u].getAttribute('data-action')){
+					case 'delete':
+					menuItemActions[u].addEventListener('click',function(){
+						_this._deleteItem(targetID);
+					});
+					break;
+					case 'switch-color':
+					menuItemActions[u].addEventListener('click',function(){
+						_this._switchTag(targetID, this);
+					});
+					break;
 				}
 			}
 		}
@@ -504,7 +602,6 @@ var NotiVerse = function(){
 		if(id>0){
 			_this._db.menu.where('id').equals(id).toArray().then(function(res){
 				if(res.length){
-					_this._updateBreadCrumb(res[0]['title']);
 					_this._dispMenuItem(id,res[0]['parent_node']);
 					var tag = '';
 					if(res[0]['tags'].length) tag = res[0]['tags'];
@@ -512,27 +609,26 @@ var NotiVerse = function(){
 				}
 			});
 		}else{
-			_this._updateBreadCrumb('');
 			_this._dispMenuItem(id);
 			_this._setTheme();
 		}
 	}
 	this._switchInterface = function(interface){
-		if(this._jquery){
-			$('#notiverse-body-part').children().each(function(){
-				$(this).removeClass('active');
-			});
-			$('#notiverse-'+interface).addClass('active');
-		}else{
-			var interfaces = _this._getDomContentByPath('body-part').children, reader = _this._getDomContentByPath(interface), classList;
-			for(var k in interfaces){
-				if(typeof interfaces[k] != 'object') continue;
-				classList = interfaces[k].getAttribute("class");
-				interfaces[k].setAttribute("class",classList.replace('active','').trim());
+		if(_this._currentTab>=0){
+			var tempData = _this._tabs[_this._currentTab];
+			if(tempData['status'] == 'edit'){
+				var editorValue = _this._getEditorValue();
+				_this._addTab(tempData['status'], tempData['id'], editorValue['title'], editorValue['content']);
 			}
-			classList = reader.getAttribute("class");
-			reader.setAttribute("class",classList + " active");
 		}
+		var interfaces = _this._getDomContentByPath('body-part').children, reader = _this._getDomContentByPath(interface), classList;
+		for(var k in interfaces){
+			if(typeof interfaces[k] != 'object') continue;
+			classList = interfaces[k].getAttribute("class") || '';
+			interfaces[k].setAttribute("class",classList.replace('active','').trim());
+		}
+		classList = reader.getAttribute("class") || '';
+		reader.setAttribute("class",classList + " active");
 	};
 	this._getContent = function(id, indexFunction, contentFunction){
 		_this._db.menu.where('id').equals(id).toArray().then(function(u){
@@ -564,7 +660,7 @@ var NotiVerse = function(){
 			styleSelector.setAttribute('id','theme-style');
 			document.getElementsByTagName('head')[0].appendChild(styleSelector);
 		}
-		var colorTemplate = '.themed-back{background-color:{{0}} !important;} .themed-face{color:{{1}} !important;border-color:{{1}} !important;} .themed-face-hover:hover{color:{{1}} !important;border-color:{{1}} !important;} table tr:first-child{border-color:{{1}};}';
+		var colorTemplate = '.themed-back{background-color:{{0}} !important;} .themed-text{color:{{1}} !important;} .themed-border{border-color:{{1}} !important;} .themed-face{color:{{1}} !important;border-color:{{1}} !important;} .themed-face-hover:hover{color:{{1}} !important;border-color:{{1}} !important;} table tr:first-child{border-color:{{1}};}';
 		styleSelector.innerHTML = colorTemplate.replace(/{{([^}]*)}}/g,function(a,b){return colorArr[parseInt(b)]});
 	};
 	this._download = function(id){
@@ -594,6 +690,7 @@ var NotiVerse = function(){
 		});
 	};
 	this._openWelcome = function(){
+		_this._switchInterface('welcome');
 		var history = _this._getHistory();
 		if(history.length){
 			_this._db.menu.where('id').anyOf(history).toArray().then(function(r){
@@ -602,7 +699,6 @@ var NotiVerse = function(){
 		}else{
 			_this._displayHistory();
 		}
-		_this._switchInterface('welcome');
 	};
 	this._displayHistory = function(arr){
 		arr = arr || [];
@@ -629,24 +725,22 @@ var NotiVerse = function(){
 			}
 		}
 	};
-	this._openReader = function(id){
+	this._openReader = function(id, title, content){
 		id = parseInt(id);
-		if(id>0){
+		if(!(id>0)) return;
+		_this._switchInterface('reader');
+		if(!!title && !!content){
+			document.getElementById('reader-title').innerText = title;
+			_this._reader.innerHTML = content;
+		}else{
 			_this._getContent(id, function(u){
 				var parentNode = 0;
 				for(let m in u){
 					if(u[m]['is_leaf'] == 0) continue;
-					if(_this._jquery){
-						$('#reader-title').text(u[m]['title']);
-					}else{
-						document.getElementById('reader-title').innerText = u[m]['title'];
-					}
+					document.getElementById('reader-title').innerText = u[m]['title'];
 					parentNode = u[m]['parent_node'];
-					_this._setTitle(u[m]['title'] + ' - NotiVerse');
+					_this._addTab('read', id, u[m]['title']);
 				}
-				_this._getColor(parentNode, function(tag){
-					_this._setTheme(tag);
-				});
 			},function(v){
 				if(!_this._reader) return;
 				for(let m in v){
@@ -656,9 +750,9 @@ var NotiVerse = function(){
 				for(var jr in images){
 					images[jr].removeAttribute('width').removeAttribute('height');
 				}
+				_this._addTab('read', id, null, _this._reader.innerHTML);
 			});
 		}
-		_this._switchInterface('reader');
 		_this._setHistory(id);
 		var toolbarFunctions = {
 			'edit':{
@@ -678,38 +772,7 @@ var NotiVerse = function(){
 		}
 		_this._setToolBar(toolbarFunctions);
 	};
-	this._openEditor = function(id){
-		if(!_this._editor) return;
-		id = parseInt(id);
-		if(id>0){
-			_this._getContent(id, function(u){
-				var parentNode = 0;
-				for(let m in u){
-					if(u[m]['is_leaf'] == 0) continue;
-					if(_this._jquery){
-						$('#editor-title input').val(u[m]['title']);
-					}else{
-						document.querySelectorAll('#editor-title input')[0].value = u[m]['title'];
-					}
-					parentNode = u[m]['parent_node'];
-					_this._setTitle('编辑：' + u[m]['title'] + ' - NotiVerse');
-					_this._updateBreadCrumb('编辑：' + u[m]['title']);
-				}
-				_this._getColor(parentNode, function(tag){
-					_this._setTheme(tag);
-				});
-			},function(v){
-				if(!_this._editor) return;
-				for(let m in v){
-					_this._editor.setContent(v[m]['content']);
-				}
-			});
-		}else{
-			id=0;
-			_this._setTitle('新建笔记'+' - NotiVerse');
-			_this._updateBreadCrumb('新建一篇笔记');
-		}
-		_this._switchInterface('editor');
+	this._setEditorToolbar = function(id){
 		var toolbarFunctions = {
 			'save':{
 				icon: 'hdd-o',
@@ -738,11 +801,44 @@ var NotiVerse = function(){
 		}
 		_this._setToolBar(toolbarFunctions);
 	};
+	this._openEditor = function(id, title, content){
+		if(!_this._editor) return;
+		_this._switchInterface('editor');
+		id = parseInt(id);
+		if(!!title && !!content){
+			document.querySelectorAll('#editor-title input')[0].value = title;
+			_this._editor.setContent(content);
+		}else{
+			if(id>0){
+				_this._getContent(id, function(u){
+					var parentNode = 0;
+					for(let m in u){
+						if(u[m]['is_leaf'] == 0) continue;
+						document.querySelectorAll('#editor-title input')[0].value = u[m]['title'];
+						parentNode = u[m]['parent_node'];
+						_this._addTab('edit', id, u[m]['title']);
+					}
+				},function(v){
+					if(!_this._editor) return;
+					for(let m in v){
+						_this._addTab('edit', id, null, v[m]['content']);
+						_this._editor.setContent(v[m]['content']);
+					}
+				});
+			}else{
+				id=0;
+				_this._addTab('edit', 0);
+				document.querySelectorAll('#editor-title input')[0].value = '';
+				_this._editor.setContent('');
+			}
+		}
+		_this._setEditorToolbar(id);
+	};
 	this._initDB = function(userName){
 		_this._dispUserName(userName);
 		userName = _this._encodeUserName(userName);
 		if(!window.indexedDB){
-			alert('您的浏览器不支持IndexedDB，请更换浏览器以操作。');
+			_this._alert('您的浏览器不支持IndexedDB，请更换浏览器以操作。');
 			throw "Your browser does not support IndexedDB. Please change a browser to retry.";
 		}
 		_this._db = new Dexie(_this._config.prefix + "database_" + userName);
@@ -766,9 +862,50 @@ var NotiVerse = function(){
 		} 
 		console.log('Database is succefully initialized.');
 	};
+	this._initUploader = function(){
+		document.getElementById('editor-uploader').addEventListener('change',function(){
+			if(!this.files.length) return;
+			var f = this.files[0], name = f.name, namesArr = name.split('.'), type = namesArr[namesArr.length-1], reader = new FileReader();
+			switch(type){
+				case 'docx':
+				reader.onload = function(){
+					var arrBuf = this.result;
+					mammoth.convertToHtml({arrayBuffer:arrBuf}).then(function(result){
+						editor.setContent(result.value);
+						console.log(result.messages);
+					}).done();
+				}
+				reader.readAsArrayBuffer(f);
+				break;
+				case 'txt':
+				reader.onload = function(){
+					var text = this.result;
+					editor.setContent('<p>' + _this._encodeHTML(text).replace('\n','</p><p>') + '</p>');
+				}
+				reader.readAsText(f);
+				break;
+				case 'html':
+				reader.onload = function(){
+					var text = this.result;
+					_this.replace(/<body[^>]*>([\s\S]*)<\/body>/,function(a,b){
+						b.replace(/<[^>]*class="notiverse-title"[^>]*>([^>]*)?<\/[^>]*>/,function(c,d){
+							if(d) document.querySelectorAll('#editor-title input')[0].value = d;
+							return '';
+						});
+						editor.setContent(b);
+					});
+				}
+				reader.readAsText(f);
+				break;
+				default:
+				_this._alert('不支持的文件类型。');
+				break;
+			}
+		});
+	};
 	this._initTinymce = function(){
 		if(!window.tinymce){
-			alert('Tinymce未成功加载，请刷新页面重试。');
+			_this._alert('Tinymce未成功加载，请刷新页面重试。');
 			throw "Tinymce is failed to include.";
 		}
 		tinymce.init({
@@ -801,63 +938,27 @@ var NotiVerse = function(){
 			},
 			init_instance_callback: function(editor){
 				_this._editor = editor;
-				document.getElementById('editor-uploader').addEventListener('change',function(){
-					if(!this.files.length) return;
-					var f = this.files[0], name = f.name, namesArr = name.split('.'), type = namesArr[namesArr.length-1], reader = new FileReader();
-					console.log(type);
-					switch(type){
-						case 'docx':
-						reader.onload = function(){
-							var arrBuf = this.result;
-							mammoth.convertToHtml({arrayBuffer:arrBuf}).then(function(result){
-								editor.setContent(result.value);
-								console.log(result.messages);
-							}).done();
-						}
-						reader.readAsArrayBuffer(f);
-						break;
-						case 'txt':
-						reader.onload = function(){
-							var text = this.result;
-							editor.setContent('<p>' + _this._encodeHTML(text).replace('\n','</p><p>') + '</p>');
-						}
-						reader.readAsText(f);
-						break;
-						case 'html':
-						reader.onload = function(){
-							var text = this.result;
-							_this.replace(/<body[^>]*>([\s\S]*)<\/body>/,function(a,b){
-								b.replace(/<[^>]*class="notiverse-title"[^>]*>([^>]*)?<\/[^>]*>/,function(c,d){
-									if(d) document.querySelectorAll('#editor-title input')[0].value = d;
-									return '';
-								});
-								editor.setContent(b);
-							});
-						}
-						reader.readAsText(f);
-						break;
-						default:
-						alert('不支持的文件类型。');
-						break;
-					}
-				});
+				_this._initUploader();
 				console.log("Tinymce is succefully initialized with ID:" + editor.id);
 			}
 		});
-};
-this._init = function(){
-	if(window.jQuery) this._jquery = window.jQuery;
-	var _userNames = _this._getLocalStorageArr("usernames"), _userName;
-	if(!_userNames || !_userNames.length){
-		_userName = this._createUser();
-	}else{
-		_userName = _userNames[0];
-	}
-	this._reader = document.getElementById('reader-main');
-	this._initDB(_userName);
-	this._initTinymce();
-	this._openWelcome();
-	this._showMenu(0);
-};
-this._init();
+	};
+	this._init = function(){
+		if(window.innerWidth < 960){
+			_this._alert('Notiverse暂时还不支持小屏幕设备，敬请期待。');
+		}
+		if(window.jQuery) this._jquery = window.jQuery;
+		var _userNames = _this._getLocalStorageArr("usernames"), _userName;
+		if(!_userNames || !_userNames.length){
+			_userName = this._createUser();
+		}else{
+			_userName = _userNames[0];
+		}
+		this._reader = document.getElementById('reader-main');
+		this._initDB(_userName);
+		this._initTinymce();
+		this._openWelcome();
+		this._showMenu(0);
+	};
+	this._init();
 };
